@@ -5,7 +5,7 @@ import seaborn as sns
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import adfuller
 
-def plot_time_series(df, date_col, value_col, label=None, title=None, xlabel=None, ylabel=None):
+def plot_time_series(df, date_col, value_col, label=None, title=None, xlabel=None, ylabel=None, save_path=None):
     plt.figure(figsize=(12, 6))
     plt.plot(df[date_col], df[value_col], linestyle='-', color='b', label=label or value_col)
     plt.xlabel(xlabel or date_col)
@@ -14,9 +14,13 @@ def plot_time_series(df, date_col, value_col, label=None, title=None, xlabel=Non
     plt.grid(True)
     if label:
         plt.legend()
-    plt.show()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
 
-def plot_box(df, group_col, value_col, title=None, xlabel=None, ylabel=None, rotation=0):
+def plot_box(df, group_col, value_col, title=None, xlabel=None, ylabel=None, rotation=0, save_path=None):
     plt.figure(figsize=(10, 6))
     sns.boxplot(x=group_col, y=value_col, data=df)
     plt.title(title or f"{value_col} by {group_col}")
@@ -24,16 +28,22 @@ def plot_box(df, group_col, value_col, title=None, xlabel=None, ylabel=None, rot
     plt.ylabel(ylabel or value_col)
     plt.xticks(rotation=rotation)
     plt.grid(True)
-    plt.show()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
 
-def plot_seasonal_boxes(df, date_col, value_col):
+def plot_seasonal_boxes(df, date_col, value_col, save_dir=None):
     df = df.copy()
     df['Month'] = df[date_col].dt.month
     df['Year'] = df[date_col].dt.year
-    plot_box(df, 'Month', value_col, title=f"Xu hướng theo tháng của {value_col}", xlabel="Month", ylabel=value_col)
-    plot_box(df, 'Year', value_col, title=f"Xu hướng theo năm của{value_col}", xlabel="Year", ylabel=value_col, rotation=45)
+    month_path = f"{save_dir}/seasonal_box_month.png" if save_dir else None
+    year_path = f"{save_dir}/seasonal_box_year.png" if save_dir else None
+    plot_box(df, 'Month', value_col, title=f"Xu hướng theo tháng của {value_col}", xlabel="Month", ylabel=value_col, save_path=month_path)
+    plot_box(df, 'Year', value_col, title=f"Xu hướng theo năm của{value_col}", xlabel="Year", ylabel=value_col, rotation=45, save_path=year_path)
 
-def plot_decomposition(df, date_col, value_col, period=30, model='additive'):
+def plot_decomposition(df, date_col, value_col, period=30, model='additive', save_path=None):
     df = df.copy()
     df = df.set_index(date_col)
     df = df.asfreq("D")
@@ -53,7 +63,11 @@ def plot_decomposition(df, date_col, value_col, period=30, model='additive'):
     plt.axhline(0, linestyle="--", color="black", linewidth=1)
     plt.title('Residuals (Noise)', fontsize=12, fontweight="bold")
     plt.tight_layout()
-    plt.show()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
 
 def check_stationarity(df, column, alpha=0.05, print_result=True):
     result = adfuller(df[column])
@@ -70,7 +84,7 @@ def check_stationarity(df, column, alpha=0.05, print_result=True):
             print("Chuỗi vẫn chưa dừng, có thể cần lấy sai phân bậc cao hơn.")
     return {'adf_stat': adf_stat, 'p_value': p_value, 'critical_values': critical_values}
 
-def compare_predicted_actual(df, date_col, predicted_col, actual_col, title=None, xlabel=None, ylabel=None):
+def compare_predicted_actual(df, date_col, predicted_col, actual_col, title=None, xlabel=None, ylabel=None, save_path=None):
     plt.figure(figsize=(12, 6))
     plt.plot(df[date_col], df[predicted_col], label="Predicted", color="blue")
     plt.plot(df[date_col], df[actual_col], label="Actual", color="red")
@@ -79,4 +93,8 @@ def compare_predicted_actual(df, date_col, predicted_col, actual_col, title=None
     plt.title(title or f"So sánh dự đoán và thực tế {predicted_col}")
     plt.grid(True)
     plt.legend()
-    plt.show()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
